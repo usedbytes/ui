@@ -1,6 +1,5 @@
 package basic2d
 
-
 import (
     "fmt"
     "image"
