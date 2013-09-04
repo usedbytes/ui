@@ -54,25 +54,38 @@ func (b *ProgressBar) MakeGraphics() {
 
 func (b *ProgressBar) Draw(to draw.Image) {
     var fillWidth, fillHeight int
+    var dp image.Point
+    var dr image.Rectangle
     
     g := b.graphics[0]
     fmt.Printf("b.Bounds(): %v, canvas.Bounds(): %v, g.Bounds(): %v\n", b.Bounds(), b.canvas.Bounds(), g.Bounds())
     draw.Draw(b.canvas, b.canvas.Bounds(), g, g.Bounds().Min, draw.Src)
 
     mrange := b.Max - b.Min
-    percent := b.Progress / mrange
+    percent := (b.Progress  * 100) / mrange
+    if (percent > 100) {
+        percent = 100
+    } else if (percent < 0) {
+        percent = 0
+    }
     activeWidth := b.Widget.Dx() - (2 * hIndent) - (2 * borderWidth)
     activeHeight := b.Widget.Dy() - (2 * vIndent) - (2 * borderWidth)
     
+    
     if (b.Direction == Horizontal) {
-        fillWidth = int(activeWidth * percent)
+        fillWidth = (activeWidth * percent) / 100
         fillHeight = activeHeight
+        dp = image.Point{hIndent + borderWidth, vIndent + borderWidth}
+        dr = image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
     } else {
-        fillHeight = int(activeHeight * percent)
+        fillHeight = (activeHeight * percent) / 100
         fillWidth = activeWidth
+        dp = image.Point{hIndent + borderWidth + (activeWidth - fillWidth), vIndent + borderWidth + (activeHeight - fillHeight)}
+        dr = image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
     }
-    dp := image.Point{hIndent + borderWidth, vIndent + borderWidth}
-    dr := image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
+    
+
+    fmt.Printf("percent: %v, activeWidth: %v, activeHeight: %v, fillWidth: %v, fillHeight: %v, dr: %v\n", percent, activeWidth, activeHeight, fillWidth, fillHeight, dr)
     draw.Draw(b.canvas, dr, &image.Uniform{b.Widget.Foreground}, image.ZP, draw.Src)
 
     draw.Draw(to, b.Bounds(), b.canvas, image.ZP, draw.Src)
