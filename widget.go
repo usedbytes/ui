@@ -3,7 +3,14 @@ package ui
 import (
     "image"
     "image/color"
+    //"github.com/gvalkov/golang-evdev"
 )
+
+/*
+type Interactable interface {
+    Handle(e *evdev.InputEvent)
+}
+*/
 
 type Drawable interface {
     Draw(to image.Image)
