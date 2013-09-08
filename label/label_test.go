@@ -13,7 +13,8 @@ import (
 //import _ "image/png"
 
 func TestAlign(t *testing.T) {
-    screen := s4548.NewS4548("/dev/s4548-0")
+    //screen := s4548.NewS4548("/dev/s4548-0")
+    screen := s4548.NewS4548(s4548.GetS4548EnvPath())
     font := fonts.NewFontFromFile("/home/kernelcode/tiny_font.fnt")
     fmt.Println("Font Loaded")
 
@@ -27,6 +28,7 @@ func TestAlign(t *testing.T) {
     short.Text = "Short"
     short.Background = color.Black
     short.Foreground = color.White
+    
     for i := 0; i < 3; i++ {
         switch i {
         case 0:
@@ -46,6 +48,7 @@ func TestAlign(t *testing.T) {
                 short.HAlign = Right
             } 
             time.Sleep(500 * time.Millisecond)
+            
             short.Update()
             short.Draw(screen)
             screen.Scanout()
@@ -74,7 +77,8 @@ func TestAlign(t *testing.T) {
 }
 
 func TestHorizontal(t *testing.T) {
-    screen := s4548.NewS4548("/dev/s4548-0")
+    //screen := s4548.NewS4548("/dev/s4548-0")
+    screen := s4548.NewS4548(s4548.GetS4548EnvPath())
     font := fonts.NewFontFromFile("/home/kernelcode/tiny_font.fnt")
     fmt.Println("Font Loaded")
 
@@ -110,7 +114,8 @@ func TestHorizontal(t *testing.T) {
 }
 
 func TestVertical(t *testing.T) {
-    screen := s4548.NewS4548("/dev/s4548-0")
+    //screen := s4548.NewS4548("/dev/s4548-0")
+    screen := s4548.NewS4548(s4548.GetS4548EnvPath())
     font := fonts.NewFontFromFile("/home/kernelcode/tiny_font.fnt")
     fmt.Println("Font Loaded")
 

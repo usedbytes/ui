@@ -53,8 +53,6 @@ func NewLabel(p *ui.Widget, f *fonts.Font) *Label {
     return label
 }
 
-//TODO: Could do optimisation so this can be called automatically in Draw.
-// figure out what has changed and thus what needs updating
 func (l *Label) Update() {
 
     l.text = l.Text
@@ -80,6 +78,23 @@ func (l *Label) Update() {
     }
 
     l.makeGraphics();
+    
+    l.Dirty = false
+}
+
+func (l *Label) IsDirty() bool {    
+    
+    if l.Dirty {
+        return true
+    }
+            
+    if (l.scroll != l.Scroll) || (l.wrap != l.Wrap) || (l.text != l.Text) {
+        l.Dirty = true
+    } else if l.Scroll {
+        l.Dirty = true;
+    }
+    
+    return l.Dirty
 }
 
 func (l *Label) makeGraphics() {
@@ -90,12 +105,16 @@ func (l *Label) makeGraphics() {
         l.graphics[i + len(l.lines)] = l.font.MakeWordColor(line, l.Widget.Background, l.Widget.Foreground)
     }
 
-    //p := color.Palette{color.White, color.Black}
     p := color.Palette{l.Widget.Background, l.Widget.Foreground}
     l.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, l.Bounds().Size()}, p)
 }
 
 func (l *Label) Draw(to draw.Image) {
+    
+    if (l.IsDirty()) {
+        l.Update();
+    }
+    
     fmt.Printf("Label bounds: %v\n", l.Bounds())
     for i, _ := range l.lines {
         l.verticalPosition(i)
