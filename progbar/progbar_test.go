@@ -10,7 +10,7 @@ import (
 //import _ "image/png"
 
 func TestHorz(t *testing.T) {
-    screen := s4548.NewS4548("/dev/s4548-0")
+    screen := s4548.NewS4548(s4548.GetS4548EnvPath())
 
     bar := NewProgressBar(nil)
     bar.SetWidth(101)
@@ -19,7 +19,7 @@ func TestHorz(t *testing.T) {
     
     for i := 0; i <= 110; i++ {
         bar.Progress = i
-        bar.MakeGraphics()
+        //bar.MakeGraphics()
         bar.Draw(screen)
         screen.Scanout()
         time.Sleep(100 * time.Millisecond)
@@ -31,7 +31,7 @@ func TestHorz(t *testing.T) {
     bar.SetPos(image.Point{10, 0})
     for i := 0; i <= 110; i++ {
         bar.Progress = i
-        bar.MakeGraphics()
+        //bar.MakeGraphics()
         bar.Draw(screen)
         screen.Scanout()
         time.Sleep(100 * time.Millisecond)

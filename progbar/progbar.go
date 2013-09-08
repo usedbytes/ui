@@ -52,10 +52,22 @@ func (b *ProgressBar) MakeGraphics() {
     b.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, b.Bounds().Size()}, p)
 }
 
+func (b *ProgressBar) IsDirty() bool {
+    return b.Dirty
+}
+
+func (b *ProgressBar) Update() {
+    b.MakeGraphics();
+}
+
 func (b *ProgressBar) Draw(to draw.Image) {
     var fillWidth, fillHeight int
     var dp image.Point
     var dr image.Rectangle
+    
+    if (b.IsDirty()) {
+        b.Update()
+    }
     
     g := b.graphics[0]
     fmt.Printf("b.Bounds(): %v, canvas.Bounds(): %v, g.Bounds(): %v\n", b.Bounds(), b.canvas.Bounds(), g.Bounds())
