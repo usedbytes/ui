@@ -205,22 +205,22 @@ func (l *List) Draw(to draw.Image) {
         l.titleLabel.Draw(l.canvas)
     }
     
-    
-    fmt.Println(len(l.labelCache), len(l.onscreen))
     for i := 0; i < l.canFit; i++ {
         l.labelCache[i].Text = l.onscreen[i].text
         if (l.selected == l.onscreen[i].index) {
             l.labelCache[i].Foreground = l.Background
             l.labelCache[i].Background = l.Foreground
-        } else {
+            l.labelCache[i].Dirty = true
+        } else if (l.labelCache[i].Foreground != l.Foreground) {
             l.labelCache[i].Foreground = l.Foreground
             l.labelCache[i].Background = l.Background
+            l.labelCache[i].Dirty = true
         }
-        l.labelCache[i].Dirty = true
         l.labelCache[i].Draw(l.canvas)
     }
     
-        
-    draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)
+    if (l.IsVisible()) {    
+        draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)
+    }
 
 }

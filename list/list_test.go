@@ -33,15 +33,15 @@ func TestList(t* testing.T) {
     list.AddItem("Six")
     time.Sleep(500 * time.Millisecond)
     
-    //for {
+    for {
         for i := 0; i < 7; i++ {
-            //time.Sleep(500 * time.Millisecond)
+            time.Sleep(500 * time.Millisecond)
             list.selected = i
             list.Draw(screen)
             screen.Scanout()
             
         }
-    //}
+    }
     
     
     

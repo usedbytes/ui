@@ -1,13 +1,10 @@
 package view
 
 import (
-    "fmt"
     "image"
     "image/draw"
     "image/color"
-    //"fmt"
     "github.com/usedbytes/ui"
-    //"github.com/usedbytes/fonts"
 )
 
 
@@ -16,7 +13,7 @@ type View struct {
 
     Name string
     
-    children []ui.Drawable
+    children []*ui.Drawable
     
     canvas *image.Paletted
 }
@@ -26,8 +23,6 @@ func NewView(p *ui.Widget, name string) *View {
     view.Widget = ui.NewWidget(p)
     view.Name = name
 
-    fmt.Printf("View %s created\n", view.Name)
-    // make zero image
     return view
 }
 
@@ -45,12 +40,16 @@ func (v *View) Draw(to draw.Image) {
         v.Update();
     }
 
-    draw.Draw(v.canvas, v.Bounds(), &image.Uniform{v.Widget.Background}, image.ZP, draw.Src)
+    draw.Draw(v.canvas, image.Rectangle{image.ZP, v.Bounds().Size()}, &image.Uniform{v.Widget.Background}, image.ZP, draw.Src)
     for _, c := range v.children {
-        c.Draw(v.canvas)
+        if ((*c).IsVisible()) {
+            (*c).Draw(v.canvas)
+        }
     }
 
-    draw.Draw(to, v.Bounds(), v.canvas, image.ZP, draw.Src)
+    if (v.IsVisible()) {
+        draw.Draw(to, v.Bounds(), v.canvas, image.ZP, draw.Src)
+    }
 }
 
 func (v *View) IsDirty() bool {
@@ -60,7 +59,7 @@ func (v *View) IsDirty() bool {
     }
     
     for _, c := range v.children {
-        if (c.IsDirty()) {
+        if ((*c).IsDirty()) {
             return true
         }
     }
@@ -69,5 +68,5 @@ func (v *View) IsDirty() bool {
 }
 
 func (v *View) AddChild(c ui.Drawable) {
-    v.children = append(v.children, c)
+    v.children = append(v.children, &c)
 }

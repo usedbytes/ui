@@ -4,12 +4,12 @@ import (
     "image"
     "image/color"
     "image/draw"
-    //"github.com/gvalkov/golang-evdev"
+    "github.com/gvalkov/golang-evdev"
 )
 
 
 type Interactable interface {
-    // Handle(e *evdev.InputEvent)
+    Handle(e *evdev.InputEvent)
     GiveFocus()
     RemoveFocus()
 }
@@ -18,13 +18,19 @@ type Interactable interface {
 type Drawable interface {
     Draw(to draw.Image)
     IsDirty() bool
+    IsVisible() bool
     Update()
+}
+
+type UiTask interface {
+    Interactable
+    Drawable
 }
 
 type Widget struct {
     *image.Rectangle
     AutoHeight, AutoWidth bool
-    Dirty bool
+    Dirty, Visible bool
     
     Parent *Widget
     //Children []*Widget
@@ -39,6 +45,7 @@ func NewWidget(p *Widget) *Widget {
     w.AutoHeight = true
     w.AutoWidth = true
     w.Dirty = true
+    w.Visible = true
     w.Parent = p
     w.Foreground = color.Black
     w.Background = color.White
@@ -62,4 +69,8 @@ func (w *Widget) Bounds() (image.Rectangle) {
 func (w *Widget) SetPos(topLeft image.Point) {
     r := image.Rectangle{topLeft, topLeft.Add(w.Size())}
     w.Rectangle = &r
+}
+
+func (w *Widget) IsVisible() bool {
+    return w.Visible
 }

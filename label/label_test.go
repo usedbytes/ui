@@ -101,6 +101,7 @@ func TestHorizontal(t *testing.T) {
     time.Sleep(1000 * time.Millisecond)
 
     longLine.Scroll = true
+    longLine.Active = true
     for i := 0; i < 30; i++ {
         longLine.Update()
         longLine.Draw(screen)
@@ -139,6 +140,7 @@ func TestVertical(t *testing.T) {
     time.Sleep(5000 * time.Millisecond)
 
     multiLine.Scroll = true
+    multiLine.Active = true
     for i := 0; i < 20; i++ {
         multiLine.Update()
         multiLine.Draw(screen)

@@ -3,6 +3,7 @@ package label
 import (
     "fmt"
     "image"
+    "time"
     "image/draw"
     "image/color"
     //"fmt"
@@ -21,23 +22,27 @@ const (
     Right
 )
 
+const debug bool = false
 
 type Label struct {
     *ui.Widget
     font *fonts.Font
 
     Text string
-    Scroll, Wrap bool
+    Scroll, Wrap, Active bool
 
     text string
     lines []string
-    scroll, wrap bool
+    scroll, wrap, active bool
     scrollSpeed, scrollPos int
     drawMode int
     VAlign Alignment
     HAlign Alignment
     graphics []*image.Paletted
     canvas *image.Paletted
+    
+    lastTime time.Time
+    
 }
 
 const WRAP_GAP = 12
@@ -48,36 +53,53 @@ func NewLabel(p *ui.Widget, f *fonts.Font) *Label {
     label.font = f
     label.VAlign = Top
     label.HAlign = Left
-    label.scrollSpeed = -5
-    // make zero image
+    label.scrollSpeed = -15
+    label.lastTime = time.Now()
+    
+    
+    label.makeGraphics()
     return label
 }
 
 func (l *Label) Update() {
 
+    width := l.Bounds().Dx()
+    height := l.Bounds().Dy()
+
+    textChanged, wrapChanged := (l.text != l.Text), (l.wrap != l.Wrap)
     l.text = l.Text
     l.scroll = l.Scroll
     l.wrap = l.Wrap
-
-    if (l.Widget.AutoWidth) {
+   
+    if (textChanged && l.Widget.AutoWidth) {
         l.SetWidth(l.font.Width(l.text));
     }
 
-    if (l.wrap) {
-        l.lines = l.font.WrapText(l.text, l.Dx());
-    } else {
-        l.lines = []string{l.text}
+    if (textChanged || wrapChanged) {
+        if (l.wrap) {
+            l.lines = l.font.WrapText(l.text, l.Dx());
+        } else {
+            l.lines = []string{l.text}
+        }
     }
-
-    if (l.Widget.AutoHeight) {
+    
+    if ((textChanged || wrapChanged) && l.Widget.AutoHeight) {
         l.SetHeight(len(l.lines) * l.font.Height());
     }
 
-    if (!l.scroll) {
+    if (!l.Scroll) {
         l.scrollPos = 0;
     }
 
-    l.makeGraphics();
+    if (textChanged || wrapChanged || (width != l.Bounds().Dx()) ||
+        (height != l.Bounds().Dy())) {
+        l.makeGraphics();
+    }
+    
+    if (l.Active && !l.active) {
+        l.lastTime = time.Now()
+    }
+    l.active = l.Active
     
     l.Dirty = false
 }
@@ -98,15 +120,21 @@ func (l *Label) IsDirty() bool {
 }
 
 func (l *Label) makeGraphics() {
-
+    fmt.Println("label.makeGraphics");
     l.graphics = make([]*image.Paletted, len(l.lines)*2)
     for i, line := range l.lines {
         l.graphics[i] = l.font.MakeWordColor(line, l.Widget.Background, l.Widget.Foreground)
+        //*(l.graphics[i + len(l.lines)]) = *(l.graphics[i])
         l.graphics[i + len(l.lines)] = l.font.MakeWordColor(line, l.Widget.Background, l.Widget.Foreground)
     }
 
-    p := color.Palette{l.Widget.Background, l.Widget.Foreground}
-    l.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, l.Bounds().Size()}, p)
+    if (l.canvas == nil) || (l.Bounds().Size() != l.canvas.Bounds().Size()) {    
+        p := color.Palette{l.Widget.Background, l.Widget.Foreground}
+        l.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, l.Bounds().Size()}, p)
+    }
+    
+    //p := color.Palette{l.Widget.Background, l.Widget.Foreground}
+    //l.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, l.Bounds().Size()}, p)
 }
 
 func (l *Label) Draw(to draw.Image) {
@@ -115,21 +143,34 @@ func (l *Label) Draw(to draw.Image) {
         l.Update();
     }
     
-    fmt.Printf("Label bounds: %v\n", l.Bounds())
+    if (debug) {
+        fmt.Printf("Label bounds: %v\n", l.Bounds())
+    }
     for i, _ := range l.lines {
         l.verticalPosition(i)
         l.horizontalPosition(i)
     }
 
+    draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{l.Background}, image.ZP, draw.Src)
     for _, g := range l.graphics {
         //topLeft := l.Bounds().Min.Add(image.Point{0, l.font.Height() * i})
         //dest := image.Rectangle{topLeft, topLeft.Add(g.Bounds().Max)}
-        fmt.Printf("\tSprite bounds: %v\n", g.Bounds())
+        if (debug) {
+            fmt.Printf("\tSprite bounds: %v\n", g.Bounds())
+        }
         draw.Draw(l.canvas, g.Bounds(), g, g.Bounds().Min, draw.Src)
     }
 
-    draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)
-    l.scrollPos += l.scrollSpeed;
+    if (l.IsVisible()) {
+        draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)
+    }
+    
+    if (l.active) {
+        now := time.Now()
+        nanoseconds := now.Sub(l.lastTime).Nanoseconds()
+        l.scrollPos += int(int64(l.scrollSpeed) * nanoseconds / 1e9);
+    }
+    l.lastTime = time.Now()
 }
 
 func (l *Label) verticalPosition(line int) {
