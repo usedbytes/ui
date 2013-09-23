@@ -1,14 +1,11 @@
-package view
+package ui
 
 import (
     "fmt"
     "image"
     //"image/draw"
     //"image/color"
-    //"github.com/usedbytes/ui"
     "github.com/usedbytes/fonts"
-    "github.com/usedbytes/ui/label"
-    "github.com/usedbytes/ui/progbar"
     "github.com/usedbytes/s4548"
     "testing"
     "time"
@@ -26,19 +23,19 @@ func TestView(t* testing.T) {
     view.SetWidth(101)
     view.SetHeight(40)
     
-    lbl1 := label.NewLabel(nil, font)
+    lbl1 := NewLabel(nil, font)
     lbl1.AutoWidth = false
     lbl1.AutoHeight = true
     lbl1.SetWidth(101)
     lbl1.SetHeight(40)
-    lbl1.VAlign = label.Middle
-    lbl1.HAlign = label.Centre
+    lbl1.VAlign = Middle
+    lbl1.HAlign = Centre
     lbl1.Text = "This is a big long label test which should be scrolling with any luck"
     lbl1.Scroll = true
     
     view.AddChild(lbl1)
     
-    bar := progbar.NewProgressBar(nil)
+    bar := NewProgressBar(nil)
     bar.SetWidth(101)
     bar.SetHeight(8)
     bar.SetPos(image.Point{0, 32})

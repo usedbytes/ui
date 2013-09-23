@@ -1,10 +1,9 @@
-package list
+package ui
 
 import (
     "fmt"
     //"image/draw"
     //"image/color"
-    //"github.com/usedbytes/ui"
     "github.com/usedbytes/fonts"
     "github.com/usedbytes/s4548"
     "testing"
@@ -33,7 +32,7 @@ func TestList(t* testing.T) {
     list.AddItem("Six")
     time.Sleep(500 * time.Millisecond)
     
-    for {
+    for j := 0; j < 5; j++ {
         for i := 0; i < 7; i++ {
             time.Sleep(500 * time.Millisecond)
             list.selected = i

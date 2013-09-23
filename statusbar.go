@@ -1,9 +1,6 @@
-package statusbar
+package ui
 
 import (
-    "github.com/usedbytes/ui"
-    "github.com/usedbytes/ui/label"
-    "github.com/usedbytes/ui/view"
     "github.com/usedbytes/fonts"
     "image"
     "image/draw"
@@ -25,18 +22,18 @@ const (
 )
 
 type StatusBar struct {
-    view *view.View
+    view *View
     icons, tiny *fonts.Font
-    stateLabel, shuffleLabel, repeatLabel, tracksLabel *label.Label 
+    stateLabel, shuffleLabel, repeatLabel, tracksLabel *Label 
     
     State int
     Repeat, Shuffle bool
     TrackNum, Tracks int
 }
 
-func NewStatusBar(p *ui.Widget) (*StatusBar) {
+func NewStatusBar(p *Widget) (*StatusBar) {
     sb := new(StatusBar)
-    sb.view = view.NewView(p, "Status Bar")
+    sb.view = NewView(p, "Status Bar")
     sb.view.AutoWidth = false
     sb.view.AutoHeight = false
     sb.view.SetWidth(101)
@@ -49,18 +46,18 @@ func NewStatusBar(p *ui.Widget) (*StatusBar) {
     sb.Repeat, sb.Shuffle = false, false
     sb.TrackNum, sb.Tracks = 0, 0
     
-    sb.stateLabel = label.NewLabel(sb.view.Widget, sb.icons)
+    sb.stateLabel = NewLabel(sb.view.Widget, sb.icons)
     sb.stateLabel.SetPos(image.Point{2, 0})
-    sb.repeatLabel = label.NewLabel(sb.view.Widget, sb.icons)
+    sb.repeatLabel = NewLabel(sb.view.Widget, sb.icons)
     sb.repeatLabel.SetPos(image.Point{10, 0})
-    sb.shuffleLabel = label.NewLabel(sb.view.Widget, sb.icons)
+    sb.shuffleLabel = NewLabel(sb.view.Widget, sb.icons)
     sb.shuffleLabel.SetPos(image.Point{19, 0})
-    sb.tracksLabel = label.NewLabel(sb.view.Widget, sb.tiny)
+    sb.tracksLabel = NewLabel(sb.view.Widget, sb.tiny)
     sb.tracksLabel.AutoWidth = false
     sb.tracksLabel.SetWidth(70)
     width := sb.view.Bounds().Dx()
     sb.tracksLabel.SetPos(image.Point{width - 70, 0})
-    sb.tracksLabel.HAlign = label.Right
+    sb.tracksLabel.HAlign = Right
     
     sb.view.AddChild(sb.stateLabel)
     sb.view.AddChild(sb.repeatLabel)

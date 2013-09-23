@@ -1,4 +1,4 @@
-package statusbar
+package ui
 
 import (
     "fmt"

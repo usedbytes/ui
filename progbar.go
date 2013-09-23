@@ -1,8 +1,7 @@
-package progbar
+package ui
 
 import (
-    "github.com/usedbytes/ui"
-    "github.com/usedbytes/ui/basic2d"
+    "github.com/usedbytes/basic2d"
     "image"
     "image/draw"
     "image/color"
@@ -20,10 +19,8 @@ const hIndent = 1
 const vIndent = 1
 const borderWidth = 1
 
-const debug bool = false
-
 type ProgressBar struct {
-    *ui.Widget
+    *Widget
     Min, Max int
     Progress int
     Direction Orientation
@@ -31,9 +28,9 @@ type ProgressBar struct {
     canvas *image.Paletted
 }
 
-func NewProgressBar(p *ui.Widget) (*ProgressBar) {
+func NewProgressBar(p *Widget) (*ProgressBar) {
     bar := new(ProgressBar)
-    bar.Widget = ui.NewWidget(p)
+    bar.Widget = NewWidget(p)
     bar.Min = 0
     bar.Max = 100
     bar.Progress = 50

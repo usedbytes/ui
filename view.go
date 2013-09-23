@@ -1,26 +1,25 @@
-package view
+package ui
 
 import (
     "image"
     "image/draw"
     "image/color"
-    "github.com/usedbytes/ui"
 )
 
 
 type View struct {
-    *ui.Widget
+    *Widget
 
     Name string
     
-    children []*ui.Drawable
+    children []*Drawable
     
     canvas *image.Paletted
 }
 
-func NewView(p *ui.Widget, name string) *View {
+func NewView(p *Widget, name string) *View {
     view := new(View)
-    view.Widget = ui.NewWidget(p)
+    view.Widget = NewWidget(p)
     view.Name = name
 
     return view
@@ -67,6 +66,6 @@ func (v *View) IsDirty() bool {
     return false
 }
 
-func (v *View) AddChild(c ui.Drawable) {
+func (v *View) AddChild(c Drawable) {
     v.children = append(v.children, &c)
 }

@@ -1,31 +1,29 @@
-package list
+package ui
 
 import (
     "fmt"
     "image"
     "image/draw"
     "image/color"
-    "github.com/usedbytes/ui"
-    "github.com/usedbytes/ui/label"
     "github.com/usedbytes/fonts"
 )
 
 type List struct {
-    *ui.Widget
+    *Widget
     font *fonts.Font
 
     Title, title string
-    titleLabel *label.Label
+    titleLabel *Label
         
     items, onscreen []*listItem
     
     selected, canFit int
 
-    labelCache []*label.Label
+    labelCache []*Label
     icons []*image.Paletted
     canvas *image.Paletted
     
-    drawables []*ui.Drawable
+    drawables []*Drawable
 }
 
 type listItem  struct {
@@ -57,9 +55,9 @@ func (l *List) AddItem(text string) {
     l.items = append(l.items, li)
 }
 
-func NewList(p *ui.Widget, f *fonts.Font) *List {
+func NewList(p *Widget, f *fonts.Font) *List {
     list := new(List)
-    list.Widget = ui.NewWidget(p)
+    list.Widget = NewWidget(p)
     list.font = f
     
     return list
@@ -162,8 +160,8 @@ func (l *List) makeGraphics() {
 
     if l.title != "" {
         if (l.titleLabel == nil) {
-            l.titleLabel = label.NewLabel(l.Widget, l.font);
-            l.titleLabel.HAlign = label.Left
+            l.titleLabel = NewLabel(l.Widget, l.font);
+            l.titleLabel.HAlign = Left
             l.titleLabel.Foreground = l.Foreground
             l.titleLabel.Background = l.Background
         }
@@ -173,9 +171,9 @@ func (l *List) makeGraphics() {
     }
     
     if (len(l.labelCache) != l.canFit) {
-        l.labelCache = make([]*label.Label, l.canFit) 
+        l.labelCache = make([]*Label, l.canFit) 
         for i := 0; i < l.canFit; i++ {
-            lbl := label.NewLabel(l.Widget, l.font)
+            lbl := NewLabel(l.Widget, l.font)
             l.labelCache[i] = lbl
             lbl.AutoWidth = false
             lbl.Foreground = l.Foreground
@@ -208,16 +206,24 @@ func (l *List) Draw(to draw.Image) {
     for i := 0; i < l.canFit; i++ {
         l.labelCache[i].Text = l.onscreen[i].text
         if (l.selected == l.onscreen[i].index) {
-            l.labelCache[i].Foreground = l.Background
-            l.labelCache[i].Background = l.Foreground
-            l.labelCache[i].Dirty = true
-        } else if (l.labelCache[i].Foreground != l.Foreground) {
+            if (!l.labelCache[i].Inverted()) {
+                l.labelCache[i].InvertColors()
+            }
+        } else if (l.labelCache[i].Inverted()) {
+            l.labelCache[i].InvertColors()
+        }
+                // l.labelCache[i].Foreground = l.Background
+                // l.labelCache[i].Background = l.Foreground
+                //l.labelCache[i].Dirty = true
+            /*
+            } else if (l.labelCache[i].Foreground != l.Foreground) {
             l.labelCache[i].Foreground = l.Foreground
             l.labelCache[i].Background = l.Background
             l.labelCache[i].Dirty = true
-        }
+            */
         l.labelCache[i].Draw(l.canvas)
     }
+    //l.wasSelected = l.selected
     
     if (l.IsVisible()) {    
         draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)

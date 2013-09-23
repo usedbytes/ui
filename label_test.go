@@ -1,4 +1,4 @@
-package label
+package ui
 
 import (
     "fmt"

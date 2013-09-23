@@ -1,4 +1,4 @@
-package progbar
+package ui
 
 import (
     "image"

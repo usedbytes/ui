@@ -1,4 +1,4 @@
-package label
+package ui
 
 import (
     "fmt"
@@ -7,7 +7,6 @@ import (
     "image/draw"
     "image/color"
     //"fmt"
-    "github.com/usedbytes/ui"
     "github.com/usedbytes/fonts"
 )
 
@@ -25,7 +24,7 @@ const (
 const debug bool = false
 
 type Label struct {
-    *ui.Widget
+    *Widget
     font *fonts.Font
 
     Text string
@@ -47,9 +46,9 @@ type Label struct {
 
 const WRAP_GAP = 12
 
-func NewLabel(p *ui.Widget, f *fonts.Font) *Label {
+func NewLabel(p *Widget, f *fonts.Font) *Label {
     label := new(Label)
-    label.Widget = ui.NewWidget(p)
+    label.Widget = NewWidget(p)
     label.font = f
     label.VAlign = Top
     label.HAlign = Left
@@ -129,13 +128,29 @@ func (l *Label) makeGraphics() {
     }
 
     if (l.canvas == nil) || (l.Bounds().Size() != l.canvas.Bounds().Size()) {    
-        p := color.Palette{l.Widget.Background, l.Widget.Foreground}
+        //p := color.Palette{l.Widget.Background, l.Widget.Foreground}
+        p := color.Palette{l.Widget.Foreground, l.Widget.Background}
         l.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, l.Bounds().Size()}, p)
     }
     
     //p := color.Palette{l.Widget.Background, l.Widget.Foreground}
     //l.canvas = image.NewPaletted(image.Rectangle{image.Point{0,0}, l.Bounds().Size()}, p)
 }
+
+/*
+func (l *Label) InvertColors() {
+    for _, im := range l.graphics {
+        im.Palette[0], im.Palette[1] = im.Palette[1], im.Palette[0]
+    }
+    l.canvas.Palette[0], l.canvas.Palette[1] = l.canvas.Palette[1], l.canvas.Palette[0]
+    l.inverted = !l.inverted
+    l.Dirty = true
+}
+
+func (l *Label) Inverted() bool {
+    return l.inverted
+}
+*/
 
 func (l *Label) Draw(to draw.Image) {
     
@@ -151,7 +166,7 @@ func (l *Label) Draw(to draw.Image) {
         l.horizontalPosition(i)
     }
 
-    draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{l.Background}, image.ZP, draw.Src)
+    draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{l.Widget.Background}, image.ZP, draw.Src)
     for _, g := range l.graphics {
         //topLeft := l.Bounds().Min.Add(image.Point{0, l.font.Height() * i})
         //dest := image.Rectangle{topLeft, topLeft.Add(g.Bounds().Max)}
