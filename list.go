@@ -206,11 +206,9 @@ func (l *List) Draw(to draw.Image) {
     for i := 0; i < l.canFit; i++ {
         l.labelCache[i].Text = l.onscreen[i].text
         if (l.selected == l.onscreen[i].index) {
-            if (!l.labelCache[i].Inverted()) {
-                l.labelCache[i].InvertColors()
-            }
-        } else if (l.labelCache[i].Inverted()) {
-            l.labelCache[i].InvertColors()
+            l.labelCache[i].Invert = true
+        } else {
+            l.labelCache[i].Invert = false
         }
                 // l.labelCache[i].Foreground = l.Background
                 // l.labelCache[i].Background = l.Foreground

@@ -28,7 +28,7 @@ type Label struct {
     font *fonts.Font
 
     Text string
-    Scroll, Wrap, Active bool
+    Scroll, Wrap, Active, Invert bool
 
     text string
     lines []string
@@ -121,6 +121,7 @@ func (l *Label) IsDirty() bool {
 func (l *Label) makeGraphics() {
     fmt.Println("label.makeGraphics");
     l.graphics = make([]*image.Paletted, len(l.lines)*2)
+
     for i, line := range l.lines {
         l.graphics[i] = l.font.MakeWordColor(line, l.Widget.Background, l.Widget.Foreground)
         //*(l.graphics[i + len(l.lines)]) = *(l.graphics[i])
@@ -166,8 +167,19 @@ func (l *Label) Draw(to draw.Image) {
         l.horizontalPosition(i)
     }
 
-    draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{l.Widget.Background}, image.ZP, draw.Src)
+    bg := l.Widget.Background
+    if l.Invert {
+        bg = l.Widget.Foreground
+    }
+    draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{bg}, image.ZP, draw.Src)
     for _, g := range l.graphics {
+        if l.Invert {
+            ip := color.Palette{l.Widget.Foreground, l.Widget.Background}
+            g.Palette = ip
+        } else {
+            p := color.Palette{l.Widget.Background, l.Widget.Foreground}
+            g.Palette = p
+        }
         //topLeft := l.Bounds().Min.Add(image.Point{0, l.font.Height() * i})
         //dest := image.Rectangle{topLeft, topLeft.Add(g.Bounds().Max)}
         if (debug) {
