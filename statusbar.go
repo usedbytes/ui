@@ -19,6 +19,7 @@ const (
     ICON_REPEAT = string(3)
     ICON_SHUFFLE = string(4)
     ICON_BLANK = string(5)
+    ICON_SELECTED = string(6)
 )
 
 type StatusBar struct {

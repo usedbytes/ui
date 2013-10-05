@@ -60,6 +60,11 @@ func NewLabel(p *Widget, f *fonts.Font) *Label {
     return label
 }
 
+
+func (l *Label) Font() *fonts.Font {
+    return l.font
+}
+
 func (l *Label) Update() {
 
     width := l.Bounds().Dx()

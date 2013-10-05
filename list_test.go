@@ -21,21 +21,23 @@ func TestList(t* testing.T) {
     list.SetHeight(40)
     fmt.Println("Set size:", list.Bounds())
     list.AutoHeight = false
-    list.selected = 1
+    list.Selected = 0
     
-    list.AddItem("Zero")
+    list.AddItem("Zero", 0, nil)
+    /*
     list.AddItem("One")
     list.AddItem("Two")
     list.AddItem("Three")
     list.AddItem("Four")
     list.AddItem("Five")
     list.AddItem("Six")
+    */
     time.Sleep(500 * time.Millisecond)
     
     for j := 0; j < 5; j++ {
-        for i := 0; i < 7; i++ {
+        for i := 0; i < 1; i++ {
             time.Sleep(500 * time.Millisecond)
-            list.selected = i
+            list.Selected = i
             list.Draw(screen)
             screen.Scanout()
             
