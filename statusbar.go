@@ -64,7 +64,7 @@ func NewStatusBar(p *Widget) (*StatusBar) {
     sb.view.AddChild(sb.repeatLabel)
     sb.view.AddChild(sb.shuffleLabel)
     sb.view.AddChild(sb.tracksLabel)
-    
+    //sb.view.Damage(sb.Bounds())
     return sb
 }
 
@@ -106,13 +106,23 @@ func (sb *StatusBar) IsVisible() bool {
     return sb.view.IsVisible()
 }
 
-func (sb *StatusBar) Draw(to draw.Image) {
+func (sb *StatusBar) Draw(to draw.Image) image.Rectangle {
     
     if (sb.IsDirty()) {
         sb.Update()
+        if sb.IsVisible() {
+            return sb.view.Draw(to)
+        }
     }
 
-    if (sb.IsVisible()) {
-        sb.view.Draw(to)
-    }
+    return image.ZR
 }
+
+func (sb *StatusBar) Bounds() (image.Rectangle) {
+    return sb.view.Bounds()
+}
+
+func (sb *StatusBar) MakeDirty() {
+    sb.view.Dirty = true
+}
+

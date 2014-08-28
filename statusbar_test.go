@@ -17,7 +17,7 @@ func TestStatusBar(t* testing.T) {
     statusbar.Tracks = 1000
     r := rand.New(rand.NewSource(99))
 
-    for {
+	for i := 0; i < 10; i++ {
         time.Sleep(1000 * time.Millisecond)
         if state {
             statusbar.State = STATE_PAUSED

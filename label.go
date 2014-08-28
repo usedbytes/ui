@@ -32,7 +32,7 @@ type Label struct {
 
     text string
     lines []string
-    scroll, wrap, active bool
+    scroll, wrap, active, invert bool
     scrollSpeed, scrollPos int
     drawMode int
     VAlign Alignment
@@ -71,9 +71,7 @@ func (l *Label) Update() {
     height := l.Bounds().Dy()
 
     textChanged, wrapChanged := (l.text != l.Text), (l.wrap != l.Wrap)
-    l.text = l.Text
-    l.scroll = l.Scroll
-    l.wrap = l.Wrap
+    l.text, l.scroll, l.wrap, l.invert = l.Text, l.Scroll, l.Wrap, l.Invert
    
     if (textChanged && l.Widget.AutoWidth) {
         l.SetWidth(l.font.Width(l.text));
@@ -111,12 +109,16 @@ func (l *Label) Update() {
 func (l *Label) IsDirty() bool {    
     
     if l.Dirty {
+        fmt.Println("Dirty cos dirty")
         return true
     }
             
-    if (l.scroll != l.Scroll) || (l.wrap != l.Wrap) || (l.text != l.Text) {
+    if (l.scroll != l.Scroll) || (l.wrap != l.Wrap) || (l.text != l.Text) || 
+        (l.invert != l.Invert) {
+        fmt.Println("Dirty cos changed")
         l.Dirty = true
     } else if l.Scroll {
+        fmt.Println("Dirty cos scroll")
         l.Dirty = true;
     }
     
@@ -124,7 +126,9 @@ func (l *Label) IsDirty() bool {
 }
 
 func (l *Label) makeGraphics() {
-    fmt.Println("label.makeGraphics");
+    if (debug) {
+        fmt.Println("label.makeGraphics");
+    }
     l.graphics = make([]*image.Paletted, len(l.lines)*2)
 
     for i, line := range l.lines {
@@ -158,51 +162,58 @@ func (l *Label) Inverted() bool {
 }
 */
 
-func (l *Label) Draw(to draw.Image) {
+func (l *Label) ResetScroll() {
+    l.scrollPos = 0
+}
+
+func (l *Label) Draw(to draw.Image) image.Rectangle {
     
     if (l.IsDirty()) {
         l.Update();
-    }
-    
-    if (debug) {
-        fmt.Printf("Label bounds: %v\n", l.Bounds())
-    }
-    for i, _ := range l.lines {
-        l.verticalPosition(i)
-        l.horizontalPosition(i)
-    }
-
-    bg := l.Widget.Background
-    if l.Invert {
-        bg = l.Widget.Foreground
-    }
-    draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{bg}, image.ZP, draw.Src)
-    for _, g := range l.graphics {
-        if l.Invert {
-            ip := color.Palette{l.Widget.Foreground, l.Widget.Background}
-            g.Palette = ip
-        } else {
-            p := color.Palette{l.Widget.Background, l.Widget.Foreground}
-            g.Palette = p
-        }
-        //topLeft := l.Bounds().Min.Add(image.Point{0, l.font.Height() * i})
-        //dest := image.Rectangle{topLeft, topLeft.Add(g.Bounds().Max)}
+        
         if (debug) {
-            fmt.Printf("\tSprite bounds: %v\n", g.Bounds())
+            fmt.Printf("Label bounds: %v\n", l.Bounds())
         }
-        draw.Draw(l.canvas, g.Bounds(), g, g.Bounds().Min, draw.Src)
-    }
+        for i, _ := range l.lines {
+            l.verticalPosition(i)
+            l.horizontalPosition(i)
+        }
 
-    if (l.IsVisible()) {
-        draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)
+        bg := l.Widget.Background
+        if l.Invert {
+            bg = l.Widget.Foreground
+        }
+
+        //draw.Draw(l.canvas, image.Rectangle{image.ZP, l.Bounds().Size()}, &image.Uniform{bg}, image.ZP, draw.Src)
+        if (l.IsVisible()) {
+            draw.Draw(to, l.Bounds(), &image.Uniform{bg}, image.ZP, draw.Src)
+            for _, g := range l.graphics {
+                if l.Invert {
+                    ip := color.Palette{l.Widget.Foreground, l.Widget.Background}
+                    g.Palette = ip
+                } else {
+                    p := color.Palette{l.Widget.Background, l.Widget.Foreground}
+                    g.Palette = p
+                }
+                //topLeft := l.Bounds().Min.Add(image.Point{0, l.font.Height() * i})
+                //dest := image.Rectangle{topLeft, topLeft.Add(g.Bounds().Max)}
+                if (debug) {
+                    fmt.Printf("\tSprite bounds: %v\n", g.Bounds())
+                }
+                draw.Draw(to, l.Bounds(), g, image.ZP, draw.Src)
+            }
+        }
+        
+        if (l.active && l.scroll) {
+            now := time.Now()
+            nanoseconds := now.Sub(l.lastTime).Nanoseconds()
+            l.scrollPos += int(int64(l.scrollSpeed) * nanoseconds / 1e9);
+        }
+        l.lastTime = time.Now()
+
+        return l.Bounds()
     }
-    
-    if (l.active) {
-        now := time.Now()
-        nanoseconds := now.Sub(l.lastTime).Nanoseconds()
-        l.scrollPos += int(int64(l.scrollSpeed) * nanoseconds / 1e9);
-    }
-    l.lastTime = time.Now()
+    return image.ZR
 }
 
 func (l *Label) verticalPosition(line int) {
@@ -275,4 +286,8 @@ func (l *Label) horizontalPosition(line int) {
         l.graphics[line + len(l.lines)].Rect = image.Rectangle{topLeft, topLeft.Add(l.graphics[line + len(l.lines)].Bounds().Size())} 
     }
 
+}
+
+func (l *Label) MakeDirty() {
+    l.Dirty = true
 }

@@ -102,7 +102,7 @@ func TestHorizontal(t *testing.T) {
 
     longLine.Scroll = true
     longLine.Active = true
-    for i := 0; i < 30; i++ {
+    for i := 0; i < 50; i++ {
         longLine.Update()
         longLine.Draw(screen)
         screen.Scanout()

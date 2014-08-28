@@ -21,8 +21,8 @@ const borderWidth = 1
 
 type ProgressBar struct {
     *Widget
-    Min, Max int
-    Progress int
+    Min, Max, Progress int
+    progress int
     Direction Orientation
     graphics []*image.Paletted
     canvas *image.Paletted
@@ -51,9 +51,14 @@ func (b *ProgressBar) MakeGraphics() {
     if (b.canvas == nil) || (b.Bounds().Size() != b.canvas.Bounds().Size()) {    
         b.canvas = image.NewPaletted(image.Rectangle{image.ZP, b.Bounds().Size()}, p)
     }
+    b.Dirty = false
 }
 
 func (b *ProgressBar) IsDirty() bool {
+    if (b.progress != b.Progress) {
+        b.progress = b.Progress
+        b.Dirty = true
+    }
     return b.Dirty
 }
 
@@ -61,50 +66,57 @@ func (b *ProgressBar) Update() {
     b.MakeGraphics();
 }
 
-func (b *ProgressBar) Draw(to draw.Image) {
+func (b *ProgressBar) Draw(to draw.Image) image.Rectangle {
     var fillWidth, fillHeight int
     var dp image.Point
     var dr image.Rectangle
     
     if (b.IsDirty()) {
         b.Update()
-    }
     
-    g := b.graphics[0]
-    if (debug) {
-        fmt.Printf("b.Bounds(): %v, canvas.Bounds(): %v, g.Bounds(): %v\n", b.Bounds(), b.canvas.Bounds(), g.Bounds())
-    }
-    draw.Draw(b.canvas, b.canvas.Bounds(), g, g.Bounds().Min, draw.Src)
+        g := b.graphics[0]
+        if (debug) {
+            fmt.Printf("b.Bounds(): %v, canvas.Bounds(): %v, g.Bounds(): %v\n", b.Bounds(), b.canvas.Bounds(), g.Bounds())
+        }
+        draw.Draw(b.canvas, b.canvas.Bounds(), g, g.Bounds().Min, draw.Src)
 
-    mrange := b.Max - b.Min
-    percent := (b.Progress  * 100) / mrange
-    if (percent > 100) {
-        percent = 100
-    } else if (percent < 0) {
-        percent = 0
-    }
-    activeWidth := b.Widget.Dx() - (2 * hIndent) - (2 * borderWidth)
-    activeHeight := b.Widget.Dy() - (2 * vIndent) - (2 * borderWidth)
-    
-    
-    if (b.Direction == Horizontal) {
-        fillWidth = (activeWidth * percent) / 100
-        fillHeight = activeHeight
-        dp = image.Point{hIndent + borderWidth, vIndent + borderWidth}
-        dr = image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
-    } else {
-        fillHeight = (activeHeight * percent) / 100
-        fillWidth = activeWidth
-        dp = image.Point{hIndent + borderWidth + (activeWidth - fillWidth), vIndent + borderWidth + (activeHeight - fillHeight)}
-        dr = image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
-    }
-    
-    if (debug) {
-        fmt.Printf("percent: %v, activeWidth: %v, activeHeight: %v, fillWidth: %v, fillHeight: %v, dr: %v\n", percent, activeWidth, activeHeight, fillWidth, fillHeight, dr)
-    }
-    draw.Draw(b.canvas, dr, &image.Uniform{b.Widget.Foreground}, image.ZP, draw.Src)
+        mrange := b.Max - b.Min
+        percent := (b.Progress  * 100) / mrange
+        if (percent > 100) {
+            percent = 100
+        } else if (percent < 0) {
+            percent = 0
+        }
+        activeWidth := b.Widget.Dx() - (2 * hIndent) - (2 * borderWidth)
+        activeHeight := b.Widget.Dy() - (2 * vIndent) - (2 * borderWidth)
+        
+        
+        if (b.Direction == Horizontal) {
+            fillWidth = (activeWidth * percent) / 100
+            fillHeight = activeHeight
+            dp = image.Point{hIndent + borderWidth, vIndent + borderWidth}
+            dr = image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
+        } else {
+            fillHeight = (activeHeight * percent) / 100
+            fillWidth = activeWidth
+            dp = image.Point{hIndent + borderWidth + (activeWidth - fillWidth), vIndent + borderWidth + (activeHeight - fillHeight)}
+            dr = image.Rectangle{dp, dp.Add(image.Point{fillWidth, fillHeight})}
+        }
+        
+        if (debug) {
+            fmt.Printf("percent: %v, activeWidth: %v, activeHeight: %v, fillWidth: %v, fillHeight: %v, dr: %v\n", percent, activeWidth, activeHeight, fillWidth, fillHeight, dr)
+        }
+        draw.Draw(b.canvas, dr, &image.Uniform{b.Widget.Foreground}, image.ZP, draw.Src)
 
-    if (b.IsVisible()) {
-        draw.Draw(to, b.Bounds(), b.canvas, image.ZP, draw.Src)
+        if (b.IsVisible()) {
+            draw.Draw(to, b.Bounds(), b.canvas, image.ZP, draw.Src)
+            return b.Bounds()
+        }
+        return image.ZR
     }
+    return image.ZR
+}
+
+func (b *ProgressBar) MakeDirty() {
+    b.Dirty = true
 }

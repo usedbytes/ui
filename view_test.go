@@ -43,7 +43,7 @@ func TestView(t* testing.T) {
     
     view.AddChild(bar)
     
-    for {
+	for i := 0; i < 20; i++ {
         time.Sleep(500 * time.Millisecond)
         bar.Progress = r.Intn(101)
         view.Draw(screen)

@@ -16,10 +16,12 @@ type Interactable interface {
 
 
 type Drawable interface {
-    Draw(to draw.Image)
+    Draw(to draw.Image) image.Rectangle
     IsDirty() bool
+    MakeDirty()
     IsVisible() bool
-    Update()
+    //Update()
+    Bounds() image.Rectangle
 }
 
 type UiTask interface {

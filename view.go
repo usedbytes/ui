@@ -13,6 +13,7 @@ type View struct {
     Name string
     
     children []*Drawable
+    Damage image.Rectangle
     
     canvas *image.Paletted
 }
@@ -33,22 +34,36 @@ func (v *View) Update() {
     }
 }
 
-func (v *View) Draw(to draw.Image) {
-
+func (v *View) Draw(to draw.Image) image.Rectangle {
+    damaged := image.ZR
     if (v.IsDirty()) {
         v.Update();
     }
 
-    draw.Draw(v.canvas, image.Rectangle{image.ZP, v.Bounds().Size()}, &image.Uniform{v.Widget.Background}, image.ZP, draw.Src)
+    //draw.Draw(v.canvas, image.Rectangle{image.ZP, v.Bounds().Size()}, &image.Uniform{v.Widget.Background}, image.ZP, draw.Src)
+    
     for _, c := range v.children {
-        if ((*c).IsVisible()) {
-            (*c).Draw(v.canvas)
+        if (*c).IsVisible() {
+            hasDamage := v.Damage != image.ZR
+            if ( (hasDamage && v.Damage.Overlaps((*c).Bounds())) || 
+                 (*c).IsDirty()) {
+                (*c).MakeDirty()
+                d := (*c).Draw(v.canvas)
+                if (damaged == image.ZR) {
+                    damaged = d
+                } else {
+                    damaged = damaged.Union(d)
+                }
+            }
         }
     }
 
+    v.Damage = image.ZR
     if (v.IsVisible()) {
         draw.Draw(to, v.Bounds(), v.canvas, image.ZP, draw.Src)
+        return damaged
     }
+    return image.ZR
 }
 
 func (v *View) IsDirty() bool {
@@ -68,4 +83,9 @@ func (v *View) IsDirty() bool {
 
 func (v *View) AddChild(c Drawable) {
     v.children = append(v.children, &c)
+    v.Damage = v.Damage.Union(c.Bounds())
+}
+
+func (v *View) MakeDirty() {
+    v.Dirty = true
 }

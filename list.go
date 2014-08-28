@@ -20,7 +20,7 @@ type List struct {
         
     items, onscreen []*ListItem
     
-    Selected, canFit int
+    Selected, selected, canFit int
 
     labelCache, iconCache []*Label
     canvas *image.Paletted
@@ -64,6 +64,7 @@ func NewList(p *Widget, f *fonts.Font, iF *fonts.Font) *List {
     list.Widget = NewWidget(p)
     list.font = f
     list.iconFont = iF
+    list.onscreen = make([]*ListItem, 0)
     
     return list
 }
@@ -82,9 +83,11 @@ func (l *List) NumItems() int {
 
 func (l *List) Update() {
 
-    l.title = l.Title
-    //fmt.Println(l.title)
-    
+    if (l.title != l.Title) {
+        l.title = l.Title
+        l.makeTitle()
+    }
+
     /*
     if (l.Widget.AutoWidth) {
         l.SetWidth(l.font.Width(l.title))
@@ -105,30 +108,30 @@ func (l *List) Update() {
     if (l.title != "") {
         activeHeight -= l.font.Height()
     }
-    l.canFit = activeHeight / l.font.Height();
-    if (l.font.Height() * l.canFit) < activeHeight {
-        l.canFit++
+    canFit := activeHeight / l.font.Height();
+    if (l.font.Height() * canFit) < activeHeight {
+        canFit++
     }
     
     //fmt.Printf("numItems: %v, canFit: %v\n", numItems, l.canFit)
     
     //fmt.Println("Selected:", l.Selected)
-    if (l.canFit >= numItems) {
+    if (canFit >= numItems) {
         //fmt.Println("Can fit all")
         l.onscreen = l.items
     } else {
-        if (l.Selected < l.canFit / 2) {
+        if (l.Selected < canFit / 2) {
             //fmt.Println("At Top")
-            l.onscreen = l.items[0:l.canFit]
+            l.onscreen = l.items[0:canFit]
             //fmt.Println(l.items)
-        } else if (l.Selected >= (numItems - (l.canFit / 2))) {
+        } else if (l.Selected >= (numItems - (canFit / 2))) {
             //fmt.Println("At Bottom")
-            l.onscreen = l.items[numItems - l.canFit:numItems]
+            l.onscreen = l.items[numItems - canFit:numItems]
             //fmt.Println(l.items)
         } else {
-            l.onscreen = make([]*ListItem, l.canFit)
-            for i := 0; i < l.canFit; i++ {
-                el := (l.Selected - (l.canFit / 2) + i) % numItems
+            l.onscreen = make([]*ListItem, canFit)
+            for i := 0; i < canFit; i++ {
+                el := (l.Selected - (canFit / 2) + i) % numItems
                 l.onscreen[i] = l.items[el]
                 //fmt.Printf("%v: %v\t", i, el)
             }
@@ -143,15 +146,16 @@ func (l *List) Update() {
         i.Update()
     }
     */
-    
-    l.makeGraphics()
-    
+    if (canFit != l.canFit) { 
+        l.canFit = canFit
+        l.makeGraphics()
+    }
+
     l.Dirty = false
 }
 
 func (l *List) IsDirty() bool {    
     
-    return true
     
     if l.Dirty {
         return true
@@ -161,10 +165,27 @@ func (l *List) IsDirty() bool {
         l.Dirty = true
     }
         
+    if (l.selected != l.Selected) {
+        l.selected = l.Selected
+        return true
+    }
+
+    for _, c := range l.labelCache {
+        if c.IsDirty() {
+            return true
+        }
+    }
+
+    for _, i := range l.iconCache {
+        if i.IsDirty() {
+            return true
+        }
+    }
+
     return l.Dirty
 }
 
-func (l *List) makeGraphics() {
+func (l *List) makeTitle() {
 
     if l.title != "" {
         if (l.titleLabel == nil) {
@@ -177,10 +198,14 @@ func (l *List) makeGraphics() {
         l.titleLabel.SetHeight(l.font.Height())        
         l.titleLabel.Text = l.title
     }
-    
+
+}
+
+func (l *List) makeGraphics() {
+
     if (len(l.iconCache) != l.canFit) {
-        l.iconCache = make([]*Label, l.canFit) 
-        for i := 0; i < l.canFit; i++ {
+        l.iconCache = make([]*Label, len(l.onscreen)) 
+        for i := 0; i < len(l.onscreen); i++ {
             lbl := NewLabel(l.Widget, l.iconFont)
             l.iconCache[i] = lbl
             lbl.AutoWidth = false
@@ -198,8 +223,8 @@ func (l *List) makeGraphics() {
     }
 
     if (len(l.labelCache) != l.canFit) {
-        l.labelCache = make([]*Label, l.canFit) 
-        for i := 0; i < l.canFit; i++ {
+        l.labelCache = make([]*Label, len(l.onscreen)) 
+        for i := 0; i < len(l.onscreen); i++ {
             lbl := NewLabel(l.Widget, l.font)
             l.labelCache[i] = lbl
             lbl.AutoWidth = false
@@ -220,8 +245,8 @@ func (l *List) makeGraphics() {
     }
 }
 
-func (l *List) Draw(to draw.Image) {
-    
+func (l *List) Draw(to draw.Image) image.Rectangle {
+
     if (l.IsDirty()) {
         l.Update();
     }
@@ -230,7 +255,8 @@ func (l *List) Draw(to draw.Image) {
         l.titleLabel.Draw(l.canvas)
     }
     
-    for i := 0; i < l.canFit && i < l.NumItems(); i++ {
+    //for i := 0; i < l.canFit && i < l.NumItems(); i++ {
+    for i := 0; i < len(l.onscreen); i++ {
         l.labelCache[i].Text = l.onscreen[i].Text
         l.iconCache[i].Text = string(l.onscreen[i].IconIndex)
         if (l.Selected == l.onscreen[i].index) {
@@ -256,7 +282,10 @@ func (l *List) Draw(to draw.Image) {
     
     if (l.IsVisible()) {    
         draw.Draw(to, l.Bounds(), l.canvas, image.ZP, draw.Src)
+        return l.Bounds()
     }
+
+    return image.ZR
 
 }
 
@@ -305,6 +334,10 @@ func (l *List) HandleInput(key rune) bool {
 }
 
 func (l *List) haltTimer() {
-    time.Sleep(800 * time.Millisecond)
+    time.Sleep(1200 * time.Millisecond)
     l.halt = false;
+}
+
+func (l *List) MakeDirty() {
+    l.Dirty = true
 }
